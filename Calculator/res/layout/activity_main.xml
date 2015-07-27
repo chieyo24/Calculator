@@ -198,7 +198,7 @@
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:onClick="doOperatorBtnClicked"
-            android:text="@string/operator_plux" />
+            android:text="@string/operator_plus" />
     </LinearLayout>
 
 </LinearLayout>

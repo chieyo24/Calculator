@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">Calculator</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
     
@@ -18,7 +17,7 @@
     <string name="number_9">9</string>
     <string name="number_float">.</string>
     
-    <string name="operator_plux">+</string>
+    <string name="operator_plus">+</string>
     <string name="operator_minus">-</string>
     <string name="operator_multi">*</string>
     <string name="operator_divide">/</string>
