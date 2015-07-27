@@ -28,7 +28,6 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         mShowResultEdt = (EditText) findViewById(R.id.result_id);
         getActionBar().hide();
-
         // initial
         mNumberBufStr = new StringBuffer();
         mShowResultBufStr = new StringBuffer();
@@ -46,7 +45,6 @@ public class MainActivity extends Activity {
                 return;
             }
         }
-
         // clear showResult String for mNumBufStr merge
         if (mNumberBufStr.length() != 0) {
             if (mShowResultBufStr.toString().endsWith(mNumberBufStr.toString()))
@@ -57,7 +55,6 @@ public class MainActivity extends Activity {
             if (mOperator == '=')
                 mShowResultBufStr.delete(0, mShowResultBufStr.length());
         }
-
         mNumberBufStr.append(numberChar);
         mShowResultBufStr.append(mNumberBufStr.toString());
         mShowResultEdt.setText(mShowResultBufStr.toString());
@@ -87,29 +84,28 @@ public class MainActivity extends Activity {
      */
     public void doOperatorBtnClicked(View v) {
         Button btn = (Button) v;
-
         if (mNumberBufStr.length() != 0) {
             if (mOperator != '=') {
-                mPreOperand = calculator(mPreOperand, mOperator,
-                        Double.valueOf(mNumberBufStr.toString()).doubleValue());
+                mPreOperand = calculator(mPreOperand, mOperator, Double.valueOf(mNumberBufStr.toString()));
             } else {
-                mPreOperand = Double.valueOf(mNumberBufStr.toString()).doubleValue();
+                mPreOperand = Double.valueOf(mNumberBufStr.toString());
             }
-
             mOperator = btn.getText().charAt(0);
-
             mNumberBufStr.delete(0, mNumberBufStr.length());
             mShowResultBufStr.delete(0, mShowResultBufStr.length());
-            mShowResultBufStr.append(String.valueOf(mPreOperand).replace(".0", "") + mOperator);
+            mShowResultBufStr.append(String.valueOf(mPreOperand));
+            if (mShowResultBufStr.toString().endsWith(".0")) {
+                mShowResultBufStr.delete(mShowResultBufStr.length() - 2, mShowResultBufStr.length());
+            }
+            mShowResultBufStr.append(mOperator);
             mShowResultEdt.setText(mShowResultBufStr.toString());
-
         } else {
             if (mOperator != '=') {
                 // for change operator
                 if (mShowResultBufStr.toString().endsWith(mOperator.toString())) {
                     mOperator = btn.getText().charAt(0);
                     mShowResultBufStr.delete(mShowResultBufStr.length() - 1, mShowResultBufStr.length());
-                    mShowResultBufStr.append(mOperator.toString());
+                    mShowResultBufStr.append(mOperator);
                     mShowResultEdt.setText(mShowResultBufStr.toString());
                 }
             } else {
@@ -121,7 +117,6 @@ public class MainActivity extends Activity {
                 }
             }
         }
-
     }
 
     /**
@@ -130,7 +125,7 @@ public class MainActivity extends Activity {
     public void doEqualBtnClicked(View v) {
         if (mNumberBufStr.length() != 0) {
             if (mOperator != '=') {
-                Double postOperand = Double.valueOf(mNumberBufStr.toString()).doubleValue();
+                Double postOperand = Double.valueOf(mNumberBufStr.toString());
                 // handle divided by 0 problem
                 if (mOperator == '/' && postOperand == 0.0) {
                     return;
@@ -138,12 +133,15 @@ public class MainActivity extends Activity {
                     mPreOperand = calculator(mPreOperand, mOperator, postOperand);
                 }
             } else {
-                mPreOperand = Double.valueOf(mNumberBufStr.toString()).doubleValue();
+                mPreOperand = Double.valueOf(mNumberBufStr.toString());
             }
 
             mNumberBufStr.delete(0, mNumberBufStr.length());
             mShowResultBufStr.delete(0, mShowResultBufStr.length());
-            mShowResultBufStr.append(String.valueOf(mPreOperand).replace(".0", ""));
+            mShowResultBufStr.append(String.valueOf(mPreOperand));
+            if (mShowResultBufStr.toString().endsWith(".0")) {
+                mShowResultBufStr.delete(mShowResultBufStr.length() - 2, mShowResultBufStr.length());
+            }
             mShowResultEdt.setText(mShowResultBufStr.toString());
 
         }
@@ -172,14 +170,10 @@ public class MainActivity extends Activity {
                 mOperator = '=';
             } else {
                 if (mNumberBufStr.length() == 0) {
-                    if (Double.valueOf(mShowResultBufStr.toString()).doubleValue() == mPreOperand) {
+                    // after Equal calculate then enter Backspace action
+                    if (Double.valueOf(mShowResultBufStr.toString()) == mPreOperand) {
                         mNumberBufStr.append(mShowResultBufStr.toString());
                         mNumberBufStr.delete(mNumberBufStr.length() - 1, mNumberBufStr.length());
-                    } else {
-                        // after Equal calculate then enter Backspace action
-                        mShowResultBufStr.delete(0, mShowResultBufStr.length());
-                        mShowResultEdt.setText(mShowResultBufStr.toString());
-                        return;
                     }
                 } else {
                     mNumberBufStr.delete(mNumberBufStr.length() - 1, mNumberBufStr.length());
