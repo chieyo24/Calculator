@@ -6,12 +6,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainActivity extends Activity {
 
     private EditText mShowResultEdt;
+    // Define division scale
+    private static final int DEF_DIV_SCALE = 10;
     // Define calculator support operator list
     private ArrayList<Character> mOperatorList = new ArrayList<Character>(Arrays.asList('+', '-', '*', '/'));
     private StringBuffer mNumberBufStr = null;
@@ -37,9 +40,9 @@ public class MainActivity extends Activity {
     public void doNumberBtnClicked(View v) {
         Button btn = (Button) v;
         Character numberChar = btn.getText().charAt(0);
-        //avoid '.' char cause double value analysis error.
-        if (numberChar == '.'){
-            if(mNumberBufStr.length()==0 || mNumberBufStr.toString().endsWith(numberChar.toString())){
+        // avoid '.' char cause double value analysis error.
+        if (numberChar == '.') {
+            if (mNumberBufStr.length() == 0 || mNumberBufStr.toString().indexOf('.') != -1) {
                 return;
             }
         }
@@ -64,17 +67,19 @@ public class MainActivity extends Activity {
      * calculator
      */
     private double calculator(double preOperands, Character operator, double postOperands) {
-        double ans = 0.0;
+        BigDecimal bPreOperands = new BigDecimal(Double.toString(preOperands));
+        BigDecimal bPostOperands = new BigDecimal(Double.toString(postOperands));
+        BigDecimal ans = new BigDecimal("0");
         if (operator == '+') {
-            ans = preOperands + postOperands;
+            ans = bPreOperands.add(bPostOperands);
         } else if (operator == '-') {
-            ans = preOperands - postOperands;
+            ans = bPreOperands.subtract(bPostOperands);
         } else if (operator == '*') {
-            ans = preOperands * postOperands;
+            ans = bPreOperands.multiply(bPostOperands);
         } else if (operator == '/') {
-            ans = preOperands / postOperands;
+            ans = bPreOperands.divide(bPostOperands, DEF_DIV_SCALE, BigDecimal.ROUND_HALF_UP);
         }
-        return ans;
+        return ans.doubleValue();
     }
 
     /**
