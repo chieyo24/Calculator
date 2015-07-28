@@ -7,8 +7,6 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends Activity {
 
@@ -38,6 +36,10 @@ public class MainActivity extends Activity {
     public void doNumberBtnClicked(View v) {
         Button btn = (Button) v;
         Character numberChar = btn.getText().charAt(0);
+        // after Equal calculate then enter number action
+        if (mNumberBufStr.length() == 0 && mShowResultBufStr.length() > 0 && mOperator == '=') {
+            mShowResultBufStr.delete(0, mShowResultBufStr.length());
+        }
         // avoid '.' char cause double value analysis error.
         if (numberChar == '.') {
             if (mNumberBufStr.length() == 0 || mNumberBufStr.toString().indexOf('.') != -1) {
@@ -49,10 +51,6 @@ public class MainActivity extends Activity {
             if (mShowResultBufStr.toString().endsWith(mNumberBufStr.toString()))
                 mShowResultBufStr.delete(mShowResultBufStr.length() - mNumberBufStr.length(),
                         mShowResultBufStr.length());
-        } else {
-            // after Equal calculate then enter number action
-            if (mOperator == '=')
-                mShowResultBufStr.delete(0, mShowResultBufStr.length());
         }
         mNumberBufStr.append(numberChar);
         mShowResultBufStr.append(mNumberBufStr.toString());
@@ -73,7 +71,11 @@ public class MainActivity extends Activity {
         } else if (operator == '/') {
             ans = preOperands.divide(postOperands, DEF_DIV_SCALE, BigDecimal.ROUND_HALF_UP);
         }
-        return ans;
+        String ansStr = ans.toString();
+        while (ansStr.endsWith("0") || ansStr.endsWith(".")) {
+            ansStr = ansStr.substring(0, ansStr.length() - 1);
+        }
+        return new BigDecimal(ansStr);
     }
 
     /**
@@ -83,11 +85,11 @@ public class MainActivity extends Activity {
         Button btn = (Button) v;
         if (mNumberBufStr.length() != 0) {
             if (mOperator != '=') {
-                BigDecimal postOperand=new BigDecimal(mNumberBufStr.toString());
+                BigDecimal postOperand = new BigDecimal(mNumberBufStr.toString());
                 if (mOperator == '/' && postOperand.toString().equals("0")) {
                     return;
                 }
-                mPreOperand = calculator(mPreOperand, mOperator,postOperand);
+                mPreOperand = calculator(mPreOperand, mOperator, postOperand);
             } else {
                 mPreOperand = new BigDecimal(mNumberBufStr.toString());
             }
@@ -161,7 +163,7 @@ public class MainActivity extends Activity {
         if (mShowResultBufStr.length() > 0) {
             Character lastChar = mShowResultBufStr.toString().charAt(mShowResultBufStr.length() - 1);
             // Judge last Character is number or operator
-            if (mOperator==lastChar) {
+            if (mOperator == lastChar) {
                 mOperator = '=';
             } else {
                 if (mNumberBufStr.length() == 0) {
