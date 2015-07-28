@@ -15,12 +15,10 @@ public class MainActivity extends Activity {
     private EditText mShowResultEdt;
     // Define division scale
     private static final int DEF_DIV_SCALE = 10;
-    // Define calculator support operator list
-    private ArrayList<Character> mOperatorList = new ArrayList<Character>(Arrays.asList('+', '-', '*', '/'));
     private StringBuffer mNumberBufStr = null;
     private StringBuffer mShowResultBufStr = null;
     private Character mOperator = '=';
-    private double mPreOperand = 0.0;
+    private BigDecimal mPreOperand = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -31,6 +29,7 @@ public class MainActivity extends Activity {
         // initial
         mNumberBufStr = new StringBuffer();
         mShowResultBufStr = new StringBuffer();
+        mPreOperand = new BigDecimal(0);
     }
 
     /**
@@ -63,20 +62,18 @@ public class MainActivity extends Activity {
     /**
      * calculator
      */
-    private double calculator(double preOperands, Character operator, double postOperands) {
-        BigDecimal bPreOperands = new BigDecimal(Double.toString(preOperands));
-        BigDecimal bPostOperands = new BigDecimal(Double.toString(postOperands));
-        BigDecimal ans = new BigDecimal("0");
+    private BigDecimal calculator(BigDecimal preOperands, Character operator, BigDecimal postOperands) {
+        BigDecimal ans = new BigDecimal(0);
         if (operator == '+') {
-            ans = bPreOperands.add(bPostOperands);
+            ans = preOperands.add(postOperands);
         } else if (operator == '-') {
-            ans = bPreOperands.subtract(bPostOperands);
+            ans = preOperands.subtract(postOperands);
         } else if (operator == '*') {
-            ans = bPreOperands.multiply(bPostOperands);
+            ans = preOperands.multiply(postOperands);
         } else if (operator == '/') {
-            ans = bPreOperands.divide(bPostOperands, DEF_DIV_SCALE, BigDecimal.ROUND_HALF_UP);
+            ans = preOperands.divide(postOperands, DEF_DIV_SCALE, BigDecimal.ROUND_HALF_UP);
         }
-        return ans.doubleValue();
+        return ans;
     }
 
     /**
@@ -86,17 +83,18 @@ public class MainActivity extends Activity {
         Button btn = (Button) v;
         if (mNumberBufStr.length() != 0) {
             if (mOperator != '=') {
-                mPreOperand = calculator(mPreOperand, mOperator, Double.valueOf(mNumberBufStr.toString()));
+                BigDecimal postOperand=new BigDecimal(mNumberBufStr.toString());
+                if (mOperator == '/' && postOperand.toString().equals("0")) {
+                    return;
+                }
+                mPreOperand = calculator(mPreOperand, mOperator,postOperand);
             } else {
-                mPreOperand = Double.valueOf(mNumberBufStr.toString());
+                mPreOperand = new BigDecimal(mNumberBufStr.toString());
             }
             mOperator = btn.getText().charAt(0);
             mNumberBufStr.delete(0, mNumberBufStr.length());
             mShowResultBufStr.delete(0, mShowResultBufStr.length());
-            mShowResultBufStr.append(String.valueOf(mPreOperand));
-            if (mShowResultBufStr.toString().endsWith(".0")) {
-                mShowResultBufStr.delete(mShowResultBufStr.length() - 2, mShowResultBufStr.length());
-            }
+            mShowResultBufStr.append(mPreOperand.toString());
             mShowResultBufStr.append(mOperator);
             mShowResultEdt.setText(mShowResultBufStr.toString());
         } else {
@@ -125,23 +123,20 @@ public class MainActivity extends Activity {
     public void doEqualBtnClicked(View v) {
         if (mNumberBufStr.length() != 0) {
             if (mOperator != '=') {
-                Double postOperand = Double.valueOf(mNumberBufStr.toString());
+                BigDecimal postOperand = new BigDecimal(mNumberBufStr.toString());
                 // handle divided by 0 problem
-                if (mOperator == '/' && postOperand == 0.0) {
+                if (mOperator == '/' && postOperand.doubleValue() == 0.0) {
                     return;
                 } else {
                     mPreOperand = calculator(mPreOperand, mOperator, postOperand);
                 }
             } else {
-                mPreOperand = Double.valueOf(mNumberBufStr.toString());
+                mPreOperand = new BigDecimal(mNumberBufStr.toString());
             }
 
             mNumberBufStr.delete(0, mNumberBufStr.length());
             mShowResultBufStr.delete(0, mShowResultBufStr.length());
-            mShowResultBufStr.append(String.valueOf(mPreOperand));
-            if (mShowResultBufStr.toString().endsWith(".0")) {
-                mShowResultBufStr.delete(mShowResultBufStr.length() - 2, mShowResultBufStr.length());
-            }
+            mShowResultBufStr.append(mPreOperand.toString());
             mShowResultEdt.setText(mShowResultBufStr.toString());
 
         }
@@ -156,7 +151,7 @@ public class MainActivity extends Activity {
         mShowResultBufStr.delete(0, mShowResultBufStr.length());
         mShowResultEdt.setText(mShowResultBufStr.toString());
         mOperator = '=';
-        mPreOperand = 0.0;
+        mPreOperand = new BigDecimal(0);
     }
 
     /**
@@ -166,12 +161,12 @@ public class MainActivity extends Activity {
         if (mShowResultBufStr.length() > 0) {
             Character lastChar = mShowResultBufStr.toString().charAt(mShowResultBufStr.length() - 1);
             // Judge last Character is number or operator
-            if (mOperatorList.contains(lastChar)) {
+            if (mOperator==lastChar) {
                 mOperator = '=';
             } else {
                 if (mNumberBufStr.length() == 0) {
                     // after Equal calculate then enter Backspace action
-                    if (Double.valueOf(mShowResultBufStr.toString()) == mPreOperand) {
+                    if (mPreOperand.toString().equals(mShowResultBufStr.toString())) {
                         mNumberBufStr.append(mShowResultBufStr.toString());
                         mNumberBufStr.delete(mNumberBufStr.length() - 1, mNumberBufStr.length());
                     }
