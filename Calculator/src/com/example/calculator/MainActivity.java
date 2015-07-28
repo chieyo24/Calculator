@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 public class MainActivity extends Activity {
 
     private EditText mShowResultEdt;
-    // Define division scale
     private static final int DEF_DIV_SCALE = 10;
     private StringBuffer mNumberBufStr = null;
     private StringBuffer mShowResultBufStr = null;
@@ -24,7 +23,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         mShowResultEdt = (EditText) findViewById(R.id.result_id);
         getActionBar().hide();
-        // initial
+        
         mNumberBufStr = new StringBuffer();
         mShowResultBufStr = new StringBuffer();
         mPreOperand = new BigDecimal(0);
