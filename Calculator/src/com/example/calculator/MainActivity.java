@@ -4,179 +4,141 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.math.BigDecimal;
 
 public class MainActivity extends Activity {
 
-    private EditText mShowResultEdt;
+    private TextView mAnsView;
     private static final int DEF_DIV_SCALE = 10;
-    private StringBuffer mNumberBufStr = null;
-    private StringBuffer mShowResultBufStr = null;
-    private Character mOperator = '=';
-    private BigDecimal mPreOperand = null;
+    private Toast mToast;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mShowResultEdt = (EditText) findViewById(R.id.result_id);
+        mAnsView = (TextView) findViewById(R.id.ansTextView);
         getActionBar().hide();
-        
-        mNumberBufStr = new StringBuffer();
-        mShowResultBufStr = new StringBuffer();
-        mPreOperand = new BigDecimal(0);
+        mToast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT);
+    }
+
+    /**
+     * show user a warning Toast message
+     * 
+     * @param str
+     *            String
+     */
+    private void showToast(String str) {
+        mToast.setText(str);
+        mToast.setDuration(Toast.LENGTH_SHORT);
+        mToast.show();
+    }
+
+    /**
+     * Get Operator char index in mAnsView
+     */
+    private int getOperatorIndex() {
+        String ansStr = mAnsView.getText().toString();
+        int operatorIndex = -1;
+        if (ansStr.length() < 2)
+            return operatorIndex;
+        for (char c : "+-*/".toCharArray()) {
+            // avoid negative number and exponent number
+            int indexE = ansStr.indexOf("E-");
+            operatorIndex = (indexE == -1) ? ansStr.indexOf(c, 1) : ansStr.indexOf(c, indexE + 2);
+            if (operatorIndex != -1) {
+                break;
+            }
+        }
+        return operatorIndex;
     }
 
     /**
      * Button OnClickListener do number button click logic
      */
     public void doNumberBtnClicked(View v) {
+        String ansStr = mAnsView.getText().toString();
+        int operatorIndex = getOperatorIndex();
         Button btn = (Button) v;
-        Character numberChar = btn.getText().charAt(0);
-        // after Equal calculate then enter number action
-        if (mNumberBufStr.length() == 0 && mShowResultBufStr.length() > 0 && mOperator == '=') {
-            mShowResultBufStr.delete(0, mShowResultBufStr.length());
+        char numberChar = btn.getText().charAt(0);
+        String lastNumberStr = ansStr.substring((operatorIndex == -1) ? 0 : operatorIndex + 1, ansStr.length());
+        if (numberChar == '.' && (lastNumberStr.length() == 0 || lastNumberStr.indexOf('.') != -1)) {
+            return;
         }
-        // avoid '.' char cause double value analysis error.
-        if (numberChar == '.') {
-            if (mNumberBufStr.length() == 0 || mNumberBufStr.toString().indexOf('.') != -1) {
-                return;
-            }
-        }
-        // clear showResult String for mNumBufStr merge
-        if (mNumberBufStr.length() != 0) {
-            if (mShowResultBufStr.toString().endsWith(mNumberBufStr.toString()))
-                mShowResultBufStr.delete(mShowResultBufStr.length() - mNumberBufStr.length(),
-                        mShowResultBufStr.length());
-        }
-        mNumberBufStr.append(numberChar);
-        mShowResultBufStr.append(mNumberBufStr.toString());
-        mShowResultEdt.setText(mShowResultBufStr.toString());
+        mAnsView.setText(ansStr + numberChar);
     }
 
     /**
      * calculator
      */
-    private BigDecimal calculator(BigDecimal preOperands, Character operator, BigDecimal postOperands) {
-        BigDecimal ans = new BigDecimal(0);
-        if (operator == '+') {
-            ans = preOperands.add(postOperands);
-        } else if (operator == '-') {
-            ans = preOperands.subtract(postOperands);
-        } else if (operator == '*') {
-            ans = preOperands.multiply(postOperands);
-        } else if (operator == '/') {
-            ans = preOperands.divide(postOperands, DEF_DIV_SCALE, BigDecimal.ROUND_HALF_UP);
+    private String calculator(String preOperand, char operator, String postOperand) {
+        BigDecimal preOperandBD = new BigDecimal(preOperand);
+        BigDecimal postOperandBD = new BigDecimal(postOperand);
+        String ansStr = "";
+        switch (operator) {
+        case '+':
+            ansStr = String.valueOf(preOperandBD.add(postOperandBD).doubleValue());
+            break;
+        case '-':
+            ansStr = String.valueOf(preOperandBD.subtract(postOperandBD).doubleValue());
+            break;
+        case '*':
+            ansStr = String.valueOf(preOperandBD.multiply(postOperandBD).doubleValue());
+            break;
+        case '/':
+            ansStr = String
+                    .valueOf(preOperandBD.divide(postOperandBD, DEF_DIV_SCALE, BigDecimal.ROUND_HALF_UP).doubleValue());
+            break;
+        default:
+            break;
         }
-        String ansStr = ans.toString();
-        while (ansStr.endsWith("0") || ansStr.endsWith(".")) {
-            ansStr = ansStr.substring(0, ansStr.length() - 1);
-        }
-        return new BigDecimal(ansStr);
+        return ansStr.endsWith(".0") ? ansStr.substring(0, ansStr.length() - 2) : ansStr;
     }
 
     /**
      * Button OnClickListener do Operator button click logic
      */
     public void doOperatorBtnClicked(View v) {
+        String ansStr = mAnsView.getText().toString();
+        int preOperatorIndex = getOperatorIndex();
         Button btn = (Button) v;
-        if (mNumberBufStr.length() != 0) {
-            if (mOperator != '=') {
-                BigDecimal postOperand = new BigDecimal(mNumberBufStr.toString());
-                if (mOperator == '/' && postOperand.toString().equals("0")) {
-                    return;
-                }
-                mPreOperand = calculator(mPreOperand, mOperator, postOperand);
-            } else {
-                mPreOperand = new BigDecimal(mNumberBufStr.toString());
-            }
-            mOperator = btn.getText().charAt(0);
-            mNumberBufStr.delete(0, mNumberBufStr.length());
-            mShowResultBufStr.delete(0, mShowResultBufStr.length());
-            mShowResultBufStr.append(mPreOperand.toString());
-            mShowResultBufStr.append(mOperator);
-            mShowResultEdt.setText(mShowResultBufStr.toString());
-        } else {
-            if (mOperator != '=') {
-                // for change operator
-                if (mShowResultBufStr.toString().endsWith(mOperator.toString())) {
-                    mOperator = btn.getText().charAt(0);
-                    mShowResultBufStr.delete(mShowResultBufStr.length() - 1, mShowResultBufStr.length());
-                    mShowResultBufStr.append(mOperator);
-                    mShowResultEdt.setText(mShowResultBufStr.toString());
-                }
-            } else {
-                // after Equal calculate
-                if (mShowResultBufStr.length() != 0) {
-                    mOperator = btn.getText().charAt(0);
-                    mShowResultBufStr.append(mOperator);
-                    mShowResultEdt.setText(mShowResultBufStr.toString());
-                }
-            }
+        char operator = btn.getText().charAt(0);
+        if (ansStr.length() == 0) {
+            return;
         }
-    }
-
-    /**
-     * Button OnClickListener do Operator button click logic
-     */
-    public void doEqualBtnClicked(View v) {
-        if (mNumberBufStr.length() != 0) {
-            if (mOperator != '=') {
-                BigDecimal postOperand = new BigDecimal(mNumberBufStr.toString());
-                // handle divided by 0 problem
-                if (mOperator == '/' && postOperand.doubleValue() == 0.0) {
-                    return;
-                } else {
-                    mPreOperand = calculator(mPreOperand, mOperator, postOperand);
-                }
-            } else {
-                mPreOperand = new BigDecimal(mNumberBufStr.toString());
+        if (preOperatorIndex == ansStr.length() - 1) {
+            ansStr = ansStr.substring(0, ansStr.length() - 1);
+        } else if (preOperatorIndex != -1){
+            String preOperand = ansStr.substring(0, preOperatorIndex);
+            char preOperator = ansStr.charAt(preOperatorIndex);
+            String postOperand = ansStr.substring(preOperatorIndex + 1, ansStr.length());
+            if (preOperator == '/' && new BigDecimal(postOperand).compareTo(BigDecimal.ZERO) == 0) {
+                showToast("Unable to calculate (division by zero)!");
+                return;
             }
-
-            mNumberBufStr.delete(0, mNumberBufStr.length());
-            mShowResultBufStr.delete(0, mShowResultBufStr.length());
-            mShowResultBufStr.append(mPreOperand.toString());
-            mShowResultEdt.setText(mShowResultBufStr.toString());
-
+            ansStr = calculator(preOperand, preOperator, postOperand);
         }
-        mOperator = '=';
+        mAnsView.setText(ansStr + ((operator == '=') ? "" : operator));
     }
 
     /**
      * Button OnClickListener do clear button click logic
      */
     public void doClearBtnClicked(View v) {
-        mNumberBufStr.delete(0, mNumberBufStr.length());
-        mShowResultBufStr.delete(0, mShowResultBufStr.length());
-        mShowResultEdt.setText(mShowResultBufStr.toString());
-        mOperator = '=';
-        mPreOperand = new BigDecimal(0);
+        mAnsView.setText("");
     }
 
     /**
      * Button OnClickListener do backspace button click logic
      */
     public void doBackspaceBtnClicked(View v) {
-        if (mShowResultBufStr.length() > 0) {
-            Character lastChar = mShowResultBufStr.toString().charAt(mShowResultBufStr.length() - 1);
-            // Judge last Character is number or operator
-            if (mOperator == lastChar) {
-                mOperator = '=';
-            } else {
-                if (mNumberBufStr.length() == 0) {
-                    // after Equal calculate then enter Backspace action
-                    if (mPreOperand.toString().equals(mShowResultBufStr.toString())) {
-                        mNumberBufStr.append(mShowResultBufStr.toString());
-                        mNumberBufStr.delete(mNumberBufStr.length() - 1, mNumberBufStr.length());
-                    }
-                } else {
-                    mNumberBufStr.delete(mNumberBufStr.length() - 1, mNumberBufStr.length());
-                }
-            }
-            mShowResultBufStr.delete(mShowResultBufStr.length() - 1, mShowResultBufStr.length());
-            mShowResultEdt.setText(mShowResultBufStr.toString());
+        String ansStr = mAnsView.getText().toString();
+        if (ansStr.length() == 0) {
+            return;
         }
+        ansStr = ansStr.substring(0, ansStr.length() - 1);
+        mAnsView.setText(ansStr);
     }
 }

@@ -7,15 +7,19 @@
         android:id="@+id/linearLayout1"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.25" >
+        android:layout_weight="5"
+        android:gravity="center_vertical" >
 
-        <EditText
-            android:id="@+id/result_id"
+        <TextView
+            android:id="@+id/ansTextView"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            android:inputType="text" />
+            android:layout_gravity="center"
+            android:gravity="right|center"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="40sp" />
 
     </LinearLayout>
 
@@ -23,7 +27,7 @@
         android:id="@+id/linearLayout2"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.15"
+        android:layout_weight="3"
         android:orientation="horizontal" >
 
         <Button
@@ -47,7 +51,7 @@
         android:id="@+id/linearLayout3"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.15"
+        android:layout_weight="3"
         android:orientation="horizontal" >
 
         <Button
@@ -87,7 +91,7 @@
         android:id="@+id/linearLayout4"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.15"
+        android:layout_weight="3"
         android:orientation="horizontal" >
 
         <Button
@@ -127,7 +131,7 @@
         android:id="@+id/linearLayout5"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.15"
+        android:layout_weight="3"
         android:orientation="horizontal" >
 
         <Button
@@ -167,7 +171,7 @@
         android:id="@+id/linearLayout6"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.15"
+        android:layout_weight="3"
         android:orientation="horizontal" >
 
         <Button
@@ -191,7 +195,7 @@
             android:layout_width="0dp"
             android:layout_height="fill_parent"
             android:layout_weight="1"
-            android:onClick="doEqualBtnClicked"
+            android:onClick="doOperatorBtnClicked"
             android:text="@string/operator_equal" />
 
         <Button
